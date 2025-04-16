@@ -1,14 +1,54 @@
 ---
-- name: Self-hosted Raspberry Pi Setup
+- name: Setup Docker, WireGuard VPN, and Cloudflare Dynamic DNS
   hosts: localhost
   become: true
-  vars:
-    docker_users:
-      - admin
 
-  roles:
-    - common
-    - docker
-    - pihole
-    - wireguard
-    - traefik
+  vars:
+    cloudflare_email: "{{ lookup('env', 'CF_EMAIL') }}"
+    cloudflare_api_token: "{{ lookup('env', 'CF_API_TOKEN') }}"
+    cloudflare_zone: "balexto.dk"
+    cloudflare_record: "vpn.balexto.dk"
+    wireguard_port: 51820
+
+  tasks:
+    # Install Docker
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    # Set up WireGuard VPN
+    - name: Create WireGuard container
+      docker_container:
+        name: wireguard
+        image: linuxserver/wireguard
+        state: started
+        restart_policy: always
+        ports:
+          - "{{ wireguard_port }}:51820/udp"
+        env:
+          PUID: 1000
+          PGID: 1000
+          TZ: "Etc/UTC"
+          SERVERURL: "{{ cloudflare_record }}"
+          SERVERPORT: "{{ wireguard_port }}"
+          PEERS: 1
+          PEERDNS: 1.1.1.1
+          ALLOWEDIPS: 0.0.0.0/0
+
+    # Set up Cloudflare Dynamic DNS
+    - name: Update Cloudflare DNS record
+      community.general.cloudflare_dns:
+        zone: "{{ cloudflare_zone }}"
+        record: "{{ cloudflare_record }}"
+        type: A
+        value: "{{ ansible_default_ipv4.address }}"
+        ttl: 120
+        proxied: yes
+        api_token: "{{ cloudflare_api_token }}"
