@@ -1,0 +1,14 @@
+---
+- name: Self-hosted Raspberry Pi Setup
+  hosts: localhost
+  become: true
+  vars:
+    docker_users:
+      - admin
+
+  roles:
+    - common
+    - docker
+    - pihole
+    - wireguard
+    - traefik
