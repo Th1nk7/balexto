@@ -1,0 +1,52 @@
+- name: Generate WireGuard private key
+  command: wg genkey
+  register: wireguard_private_key
+
+- name: Generate WireGuard public key
+  shell: echo "{{ wireguard_private_key.stdout }}" | wg pubkey
+  register: wireguard_public_key
+
+- name: Create WireGuard configuration directory
+  file:
+    path: "{{ wireguard_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Generate WireGuard configuration file
+  copy:
+    dest: "{{ wireguard_config_dir }}/wg0.conf"
+    content: |
+      [Interface]
+      Address = 10.0.0.1/24
+      ListenPort = {{ wireguard_port }}
+      PrivateKey = {{ wireguard_private_key.stdout }}
+
+      [Peer]
+      PublicKey = {{ wireguard_public_key.stdout }}
+      AllowedIPs = 10.0.0.2/32
+      Endpoint = {{ cloudflare_record }}:{{ wireguard_port }}
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Create WireGuard container
+  docker_container:
+    name: wireguard
+    image: linuxserver/wireguard
+    state: started
+    restart_policy: always
+    ports:
+      - "{{ wireguard_port }}:51820/udp"
+    env:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "Etc/UTC"
+      SERVERURL: "{{ cloudflare_record }}"
+      SERVERPORT: "{{ wireguard_port | string }}"
+      PEERS: "1"
+      PEERDNS: "1.1.1.1"
+      ALLOWEDIPS: "0.0.0.0/0"
+    volumes:
+      - "{{ wireguard_config_dir }}:/config"

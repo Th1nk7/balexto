@@ -1,0 +1,15 @@
+- name: Get public IP address
+  uri:
+    url: https://api.ipify.org
+    return_content: yes
+  register: public_ip_response
+
+- name: Update Cloudflare DNS record
+  community.general.cloudflare_dns:
+    zone: "{{ cloudflare_zone }}"
+    record: "{{ cloudflare_record }}"
+    type: A
+    value: "{{ public_ip_response.content }}"
+    ttl: 120
+    proxied: yes
+    api_token: "{{ cloudflare_api_token }}"

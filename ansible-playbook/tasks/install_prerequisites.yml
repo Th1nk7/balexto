@@ -1,0 +1,9 @@
+- name: Install required packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - wireguard-tools
+    state: present
