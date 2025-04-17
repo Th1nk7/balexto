@@ -20,21 +20,28 @@
           - ca-certificates
           - curl
           - software-properties-common
-          - wireguard-tools  # Install WireGuard tools
         state: present
         update_cache: yes
+
+    # Ensure WireGuard tools are installed
+    - name: Verify WireGuard tools are installed
+      apt:
+        name: wireguard-tools
+        state: present
+        update_cache: yes
+
+    # Clean up old Docker key files
+    - name: Remove old Docker key files
+      file:
+        path: /etc/apt/keyrings/docker.asc
+        state: absent
 
     # Add Docker's official GPG key
     - name: Download Docker's GPG key
       get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /tmp/docker.gpg
-
-    - name: Add Docker's GPG key to keyring
-      ansible.builtin.command:
-        cmd: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker.gpg
-      args:
-        creates: /etc/apt/keyrings/docker.gpg
+        dest: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
 
     # Set up the Docker repository
     - name: Add Docker repository
@@ -62,10 +69,12 @@
     - name: Generate WireGuard private key
       command: wg genkey
       register: wireguard_private_key
+      failed_when: wireguard_private_key.rc != 0
 
     - name: Generate WireGuard public key
       shell: echo "{{ wireguard_private_key.stdout }}" | wg pubkey
       register: wireguard_public_key
+      failed_when: wireguard_public_key.rc != 0
 
     # Generate WireGuard configuration
     - name: Create WireGuard configuration directory
@@ -120,6 +129,7 @@
         url: https://api.ipify.org
         return_content: yes
       register: public_ip_response
+      failed_when: public_ip_response.status != 200
 
     # Set up Cloudflare Dynamic DNS
     - name: Update Cloudflare DNS record
