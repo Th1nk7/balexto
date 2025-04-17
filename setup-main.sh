@@ -43,4 +43,4 @@ export BECOME_PASS="your-sudo-password"  # Replace with the actual sudo password
 # === SETUP CRON JOB FOR UPDATES ===
 echo "Setting up cron job for periodic updates..."
 CRON_JOB="@hourly ~/ansible-venv/bin/ansible-playbook -i ~/balexto/ansible-playbook/inventory ~/balexto/ansible-playbook/playbook.yml --tags update_dns --connection=local"
-(crontab -l 2>/dev/null | grep -v "ansible-playbook.*--tags update_dns"; echo "$CRON_JOB") | crontab -
+(crontab -l 2>/dev/null | grep -F "$CRON_JOB") || (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
