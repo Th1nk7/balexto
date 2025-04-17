@@ -52,3 +52,12 @@
         ttl: 120
         proxied: yes
         api_token: "{{ cloudflare_api_token }}"
+
+    # Enable automatic updates
+    - name: Install unattended-upgrades
+      apt:
+        name: unattended-upgrades
+        state: present
+
+    - name: Enable automatic updates
+      command: dpkg-reconfigure --priority=low unattended-upgrades
