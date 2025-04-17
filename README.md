@@ -1,35 +1,30 @@
 # balexto
 
-## Overview
-This project sets up a Docker-based WireGuard VPN server with Cloudflare Dynamic DNS updates.
+## Step-by-step guide to install:
+This is assuming you have a fresh install
 
-## Prerequisites
-- A Linux-based system (e.g., Ubuntu)
-- `sudo` privileges
-- Python 3 installed
-
-## Setup Instructions
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/Th1nk7/balexto.git
-   cd balexto
-   ```
-
-2. Run the setup script:
-   ```bash
-   chmod +x setup-main.sh
-   ./setup-main.sh
-   ```
-
-3. Verify the setup:
-   - Check if Docker is installed: `docker --version`
-   - Check if Ansible is installed: `~/ansible-venv/bin/ansible --version`
-
-4. Retrieve the WireGuard configuration:
-   ```bash
-   cat /etc/wireguard/wg0.conf
-   ```
-
-## Notes
-- The script sets up a cron job to update the Cloudflare DNS record every hour.
-- Ensure you replace the placeholder `CLOUDFLARE_API_TOKEN_HERE` with your actual Cloudflare API token.
+- Run the following as a user with sudo capability:
+```
+sudo apt update && sudo apt upgrade -y
+sudo reboot
+```
+- Wait for server to be done with reboot
+- Run the following as a user with sudo capability:
+```
+git clone https://github.com/Th1nk7/balexto.git
+cd balexto
+nano setup-main.sh
+```
+- Replace the following (REMEMBER TO REPLACE SUDO PASSWORD PLACEHOLDER):
+```
+CLOUDFLARE_EMAIL="your-cloudflare-email@example.com"
+CLOUDFLARE_API_TOKEN="your-cloudflare-api-token"
+CLOUDFLARE_ZONE="example.com"
+CLOUDFLARE_RECORD="vpn.example.com"
+export BECOME_PASS="your-sudo-password"
+```
+- Run the following as a user with sudo capability:
+```
+chmod +x setup-main.sh
+./setup-main.sh
+```
