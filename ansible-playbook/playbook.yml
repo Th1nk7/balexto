@@ -24,17 +24,18 @@
         state: present
         update_cache: yes
 
+    # Clean up old Docker key files
+    - name: Remove old Docker key files
+      file:
+        path: /etc/apt/keyrings/docker.asc
+        state: absent
+
     # Add Docker's official GPG key
     - name: Download Docker's GPG key
       get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /tmp/docker.gpg
-
-    - name: Add Docker's GPG key to keyring
-      ansible.builtin.command:
-        cmd: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker.gpg
-      args:
-        creates: /etc/apt/keyrings/docker.gpg
+        dest: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
 
     # Set up the Docker repository
     - name: Add Docker repository
