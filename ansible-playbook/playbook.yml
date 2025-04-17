@@ -2,6 +2,7 @@
 - name: Setup Docker, WireGuard VPN, and Cloudflare Dynamic DNS
   hosts: localhost
   become: true
+  become_method: sudo
 
   vars:
     cloudflare_email: "{{ cloudflare_email }}"
@@ -10,6 +11,8 @@
     cloudflare_record: "{{ cloudflare_record }}"
     wireguard_port: 51820
     wireguard_config_dir: "/etc/wireguard"
+    ansible_user: "{{ lookup('env', 'USER') | default('admin') }}"  # Default to 'admin' if undefined
+    become_password: "{{ lookup('env', 'BECOME_PASS') }}"  # Use environment variable for sudo password
 
   tasks:
     - name: Update and upgrade the system

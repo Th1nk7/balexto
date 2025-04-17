@@ -1,6 +1,16 @@
 - name: Install Docker
   shell: |
     curl -fsSL https://get.docker.com | sh
-    usermod -aG docker {{ ansible_user }}
   args:
     creates: /usr/bin/docker
+
+- name: Ensure the docker group exists
+  group:
+    name: docker
+    state: present
+
+- name: Add user to the docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes

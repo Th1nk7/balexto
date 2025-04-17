@@ -32,11 +32,13 @@ cd balexto/ansible-playbook
 
 # === RUN ANSIBLE PLAYBOOK ===
 echo "Running Ansible playbook..."
+export BECOME_PASS="your-sudo-password"  # Replace with the actual sudo password
 ~/ansible-venv/bin/ansible-playbook -i inventory playbook.yml --connection=local \
   -e "cloudflare_email=$CLOUDFLARE_EMAIL" \
   -e "cloudflare_api_token=$CLOUDFLARE_API_TOKEN" \
   -e "cloudflare_zone=$CLOUDFLARE_ZONE" \
-  -e "cloudflare_record=$CLOUDFLARE_RECORD"
+  -e "cloudflare_record=$CLOUDFLARE_RECORD" \
+  -e "ansible_user=admin"
 
 # === SETUP CRON JOB FOR UPDATES ===
 echo "Setting up cron job for periodic updates..."
