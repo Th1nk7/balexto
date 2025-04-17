@@ -11,16 +11,43 @@
     wireguard_port: 51820
 
   tasks:
-    # Install Docker
-    - name: Install Docker
+    # Install prerequisites for Docker
+    - name: Install prerequisites
       apt:
-        name: docker.io
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
         state: present
         update_cache: yes
 
+    # Add Docker's official GPG key
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    # Set up the Docker repository
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=arm64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    # Install Docker CE
+    - name: Install Docker CE
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    # Install Docker Compose
     - name: Install Docker Compose
       apt:
-        name: docker-compose
+        name: docker-compose-plugin
         state: present
 
     # Set up WireGuard VPN
