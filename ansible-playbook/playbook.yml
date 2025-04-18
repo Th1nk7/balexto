@@ -4,19 +4,21 @@
   become: true
   become_method: sudo
 
+  vars_files:
+    - credentials.yml  # Load credentials from the encrypted vault
+
   vars:
-    cloudflare_email: "{{ cloudflare_email }}"
-    cloudflare_api_token: "{{ cloudflare_api_token }}"
-    cloudflare_zone: "{{ cloudflare_zone }}"
-    cloudflare_record: "{{ cloudflare_record }}"
     wireguard_port: 51820
     wireguard_config_dir: "/etc/wireguard"
     ansible_user: "{{ lookup('env', 'USER') | default('admin') }}"  # Default to 'admin' if undefined
-    become_password: "{{ lookup('env', 'BECOME_PASS') }}"  # Use environment variable for sudo password
 
   tasks:
+
     - name: Update and upgrade the system
       import_tasks: tasks/update_system.yml
+
+    - name: Install and sets up fail2ban
+      import_tasks: tasks/install_setup_fail2ban.yml
 
     - name: Install required packages
       import_tasks: tasks/install_prerequisites.yml

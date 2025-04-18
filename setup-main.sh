@@ -3,11 +3,6 @@
 set -e  # Exit on error
 
 # === CONFIGURATION ===
-CLOUDFLARE_EMAIL="your-cloudflare-email@example.com"  # Replace with your Cloudflare email
-CLOUDFLARE_API_TOKEN="your-cloudflare-api-token"      # Replace with your Cloudflare API token
-CLOUDFLARE_ZONE="example.com"                         # Replace with your Cloudflare zone
-CLOUDFLARE_RECORD="vpn.example.com"                  # Replace with your Cloudflare record
-
 PAM_FILE="/etc/pam.d/common-password"
 LOGIN_DEFS="/etc/login.defs"
 
@@ -42,23 +37,27 @@ if [ ! -d "balexto" ]; then
 fi
 cd balexto/ansible-playbook
 
+# === CREATE ANSIBLE VAULT ===
+echo "Creating Ansible Vault for credentials..."
+ansible-vault create credentials.yml
+
 # === RUN ANSIBLE PLAYBOOK ===
 echo "Running Ansible playbook..."
-export BECOME_PASS="your-sudo-password"  # Replace with the actual sudo password
-~/ansible-venv/bin/ansible-playbook -i inventory playbook.yml --connection=local \
-  -e "cloudflare_email=$CLOUDFLARE_EMAIL" \
-  -e "cloudflare_api_token=$CLOUDFLARE_API_TOKEN" \
-  -e "cloudflare_zone=$CLOUDFLARE_ZONE" \
-  -e "cloudflare_record=$CLOUDFLARE_RECORD" \
-  -e "ansible_user=$USER"
-
-# Clear sensitive environment variables
-unset BECOME_PASS
+~/ansible-venv/bin/ansible-playbook -i inventory playbook.yml --connection=local --ask-vault-pass
 
 # === SETUP CRON JOB FOR UPDATES ===
 echo "Setting up cron job for periodic updates..."
-CRON_JOB="@hourly ~/ansible-venv/bin/ansible-playbook -i ~/balexto/ansible-playbook/inventory ~/balexto/ansible-playbook/playbook.yml --tags update_dns --connection=local"
+CRON_JOB="@hourly ~/ansible-venv/bin/ansible-playbook -i ~/balexto/ansible-playbook/inventory ~/balexto/ansible-playbook/playbook.yml --tags update_dns --connection=local --vault-password-file ~/balexto/ansible-playbook/.vault_pass"
+
+# Check if the cron job already exists, and add it if it doesn't
 (crontab -l 2>/dev/null | grep -F "$CRON_JOB") || (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+
+# Verify the cron job was added
+if crontab -l | grep -F "$CRON_JOB" > /dev/null; then
+  echo "Cron job successfully added."
+else
+  echo "Failed to add cron job. Please check manually."
+fi
 
 # Deactivate the Python virtual environment if active
 if [ -n "$VIRTUAL_ENV" ]; then

@@ -1,0 +1,42 @@
+---
+- name: Install and Configure Fail2Ban for SSH protection
+  become: true
+  block:
+    - name: Install Fail2Ban
+      apt:
+        name: fail2ban
+        state: present
+        update_cache: yes
+
+    - name: Backup jail.conf to jail.local
+      copy:
+        src: /etc/fail2ban/jail.conf
+        dest: /etc/fail2ban/jail.local
+        backup: yes
+
+    - name: Configure Fail2Ban for SSH protection
+      blockinfile:
+        path: /etc/fail2ban/jail.local
+        block: |
+          [sshd]
+          enabled  = true
+          port     = ssh
+          logpath  = %(sshd_log)s
+          maxretry = 5
+          findtime = 600
+          bantime  = 3600
+
+    - name: Ensure Fail2Ban is enabled and started
+      systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+    - name: Check status of Fail2Ban SSH jail
+      command: fail2ban-client status sshd
+      register: fail2ban_status
+      changed_when: false
+
+    - name: Show Fail2Ban status
+      debug:
+        var: fail2ban_status.stdout
