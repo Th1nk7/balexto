@@ -39,7 +39,7 @@ cd balexto/ansible-playbook
 
 # === CREATE ANSIBLE VAULT ===
 echo "Creating Ansible Vault for credentials..."
-ansible-vault create credentials.yml
+ansible-vault edit credentials.yml
 
 # === RUN ANSIBLE PLAYBOOK ===
 echo "Running Ansible playbook..."

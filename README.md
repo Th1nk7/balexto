@@ -10,7 +10,7 @@ sudo apt update && sudo apt upgrade -y && sudo reboot
 - Wait for server to be done with reboot
 - Run the following as a user with sudo capability:
 ```
-git clone https://github.com/Th1nk7/balexto.git && cd balexto && nano setup-main.sh
+git clone https://github.com/Th1nk7/balexto.git && cd balexto && nano ansible-playbook/credentials.yml
 ```
 - Replace the following (REMEMBER TO REPLACE SUDO PASSWORD PLACEHOLDER):
 ```
